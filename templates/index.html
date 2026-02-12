@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>· glass calculator ·</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #0b1220;
+        color: #e5e7eb;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .wrap {
+        max-width: 400px;
+        width: 100%;
+        margin: 0 auto;
+      }
+      .card {
+        background: rgba(20, 28, 45, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 32px;
+        padding: 24px;
+        box-shadow: 0 20px 36px -12px rgba(0, 0, 0, 0.6);
+      }
+      .display {
+        height: 80px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(0, 0, 0, 0.4);
+        padding: 0 22px;
+        font-size: 32px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        overflow-x: auto;
+        white-space: nowrap;
+        box-shadow: inset 0 4px 6px rgba(0,0,0,0.5);
+        color: #f0f6ff;
+        letter-spacing: 0.5px;
+      }
+      .display::-webkit-scrollbar {
+        height: 4px;
+      }
+      .display::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+      }
+      .msg {
+        min-height: 24px;
+        margin-top: 8px;
+        margin-bottom: 12px;
+        font-size: 13px;
+        color: #ff6b6b;
+        padding-left: 8px;
+        font-weight: 400;
+        word-break: break-word;
+      }
+      .msg.success {
+        color: #51cf66;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 8px;
+      }
+      button {
+        height: 62px;
+        border-radius: 20px;
+        border: none;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #e5e9f0;
+        font-size: 22px;
+        font-weight: 550;
+        cursor: pointer;
+        transition: all 0.08s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      button:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: scale(0.96);
+      }
+      button:active {
+        transform: scale(0.92);
+      }
+      .op {
+        background: rgba(37, 99, 235, 0.3);
+        color: white;
+        font-weight: 600;
+      }
+      .op:hover {
+        background: rgba(59, 130, 246, 0.5);
+      }
+      .danger {
+        background: rgba(239, 68, 68, 0.25);
+        color: #ffc9c9;
+      }
+      .danger:hover {
+        background: rgba(248, 113, 113, 0.4);
+      }
+      .equals {
+        background: rgba(34, 197, 94, 0.3);
+        grid-column: span 2;
+        font-weight: 700;
+        color: white;
+      }
+      .equals:hover {
+        background: rgba(74, 222, 128, 0.45);
+      }
+      .wide {
+        grid-column: span 2;
+      }
+      .sub {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #8193b8;
+        text-align: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 16px;
+        letter-spacing: 0.3px;
+      }
+      @media (max-width: 480px) {
+        .card {
+          padding: 20px;
+        }
+        .display {
+          font-size: 28px;
+          height: 70px;
+        }
+        button {
+          height: 56px;
+          font-size: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <!-- main display – shows current input / result -->
+        <div id="display" class="display">0</div>
+        <!-- message area – errors, tips -->
+        <div id="msg" class="msg"></div>
+
+        <!-- calculator grid – matches modern glass aesthetic -->
+        <div class="grid">
+          <button class="danger" data-action="clear">C</button>
+          <button data-action="back">⌫</button>
+          <button class="op" data-op="÷">÷</button>
+          <button class="op" data-op="×">×</button>
+
+          <button data-num="7">7</button>
+          <button data-num="8">8</button>
+          <button data-num="9">9</button>
+          <button class="op" data-op="-">−</button>
+
+          <button data-num="4">4</button>
+          <button data-num="5">5</button>
+          <button data-num="6">6</button>
+          <button class="op" data-op="+">+</button>
+
+          <button data-num="1">1</button>
+          <button data-num="2">2</button>
+          <button data-num="3">3</button>
+          <button data-action="dot">.</button>
+
+          <button class="wide" data-num="0">0</button>
+          <button class="equals" data-action="equals">=</button>
+        </div>
+
+        <div class="sub">
+          ⌨️ 0–9 · + - * / · Enter · Backspace · Escape
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ----- state -----
+      let a = "";          // first operand
+      let b = "";          // second operand
+      let op = "";         // current operator
+      let enteringB = false; // are we typing the second number?
+      let lastResult = false; // did we just calculate? (for overwriting on next number)
+
+      const display = document.getElementById("display");
+      const msg = document.getElementById("msg");
+
+      // ----- helpers -----
+      function setDisplay(value) {
+        display.textContent = value === "" ? "0" : value;
+      }
+
+      function showMessage(text, isError = true) {
+        msg.textContent = text;
+        msg.className = isError ? 'msg' : 'msg success';
+      }
+
+      function clearMessage() {
+        msg.textContent = "";
+      }
+
+      function currentValue() {
+        return enteringB ? b : a;
+      }
+
+      function setCurrentValue(val) {
+        if (enteringB) {
+          b = val;
+        } else {
+          a = val;
+        }
+      }
+
+      // ----- number / dot / backspace -----
+      function appendNum(digit) {
+        clearMessage();
+        
+        // If we just got a result, start fresh
+        if (lastResult) {
+          a = "";
+          b = "";
+          op = "";
+          enteringB = false;
+          lastResult = false;
+        }
+        
+        let v = currentValue();
+        
+        // Don't allow multiple leading zeros
+        if (v === "0" && digit === "0") return;
+        
+        // Replace leading zero with the digit
+        if (v === "0" && digit !== ".") {
+          v = "";
+        }
+        
+        v += digit;
+        setCurrentValue(v);
+        setDisplay(v);
+      }
+
+      function addDot() {
+        clearMessage();
+        
+        if (lastResult) {
+          a = "0";
+          b = "";
+          op = "";
+          enteringB = false;
+          lastResult = false;
+        }
+        
+        let v = currentValue();
+        
+        // Don't allow multiple dots
+        if (v.includes(".")) return;
+        
+        // Start with 0. if empty
+        if (v === "") {
+          v = "0";
+        }
+        
+        setCurrentValue(v + ".");
+        setDisplay(currentValue());
+      }
+
+      function backspace() {
+        if (lastResult) return; // Don't allow backspace after calculation
+        
+        let v = currentValue();
+        v = v.slice(0, -1);
+        setCurrentValue(v);
+        setDisplay(v || "0");
+      }
+
+      function clearAll() {
+        a = "";
+        b = "";
+        op = "";
+        enteringB = false;
+        lastResult = false;
+        clearMessage();
+        setDisplay("0");
+      }
+
+      // ----- operator -----
+      function chooseOperator(nextOp) {
+        clearMessage();
+        lastResult = false;
+        
+        // If we have no first number, use 0
+        if (a === "") {
+          a = "0";
+        }
+        
+        // If we already have an operator and second number, calculate first
+        if (op && b !== "") {
+          doEquals().then(() => {
+            op = nextOp;
+            enteringB = true;
+          });
+          return;
+        }
+        
+        op = nextOp;
+        enteringB = true;
+      }
+
+      // ----- call Flask JSON endpoint -----
+      async function doEquals() {
+        if (op === "") return;
+        if (a === "") a = "0";
+        if (b === "") b = a; // If no second number, use first number (e.g., 5 + = gives 10)
+
+        try {
+          const response = await fetch("/api/calculate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ a, b, op }),
+          });
+
+          const data = await response.json();
+
+          if (!data.ok) {
+            showMessage(data.error || "Calculation error", true);
+            return;
+          }
+
+          const result = String(data.result);
+          setDisplay(result);
+
+          // Result becomes new 'a' for continuous calculation
+          a = result;
+          b = "";
+          op = "";
+          enteringB = false;
+          lastResult = true;
+          clearMessage();
+          
+        } catch (error) {
+          showMessage(error.message || "Network error", true);
+        }
+      }
+
+      // ----- event listeners (mouse + keyboard) -----
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("button");
+        if (!btn) return;
+
+        if (btn.dataset.num !== undefined) appendNum(btn.dataset.num);
+        if (btn.dataset.op !== undefined) chooseOperator(btn.dataset.op);
+        if (btn.dataset.action === "dot") addDot();
+        if (btn.dataset.action === "back") backspace();
+        if (btn.dataset.action === "clear") clearAll();
+        if (btn.dataset.action === "equals") doEquals();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        const key = e.key;
+        
+        if (key >= "0" && key <= "9") {
+          appendNum(key);
+        } else if (key === ".") {
+          addDot();
+        } else if (key === "+") {
+          chooseOperator("+");
+        } else if (key === "-") {
+          chooseOperator("-");
+        } else if (key === "*") {
+          chooseOperator("×");
+        } else if (key === "/") {
+          e.preventDefault();
+          chooseOperator("÷");
+        } else if (key === "Enter" || key === "=") {
+          e.preventDefault();
+          doEquals();
+        } else if (key === "Backspace") {
+          e.preventDefault();
+          backspace();
+        } else if (key === "Escape") {
+          clearAll();
+        }
+      });
+
+      // Initial state
+      setDisplay("0");
+    </script>
+  </body>
+</html>
